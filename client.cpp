@@ -14,6 +14,8 @@
 
 QT_USE_NAMESPACE
 
+int Weather::weatherColourIndex = 0;
+
 //! [constructor]
 Client::Client(const QUrl &url_, QObject *parent) :
     QObject(parent),
@@ -45,7 +47,8 @@ Client::Client(const QUrl &url_, QObject *parent) :
     consoleThread->start();
 
     //weather:
-//    weather = new Weather(this);
+    weather = new Weather(this);
+    connect(weather, &Weather::postItSignal, this, &Client::sendText);
 }
 
 
@@ -130,12 +133,12 @@ void Client::onTextMessageReceived(QString message)
 
     if(msgRecElements->is_not_valid_message){
         std::cout << "WARNING: is_not_valid_messag" << "\n";
-        return;
+//        return;
     }
 
     std::cout << termcolor::blue << "currentRecMsgStruct.msg: " << msgRecElements->msg  << termcolor::reset<< std::endl;
 
-    //checkWeather(message);
+    checkWeather(msgRecElements, msgSendElements);
 
     //std::cout << termcolor::red << message.toStdString() << termcolor::reset<< std::endl;
 }
@@ -174,20 +177,11 @@ void Client::checkPing(QString message)
     }
 }
 
-//void Client::checkWeather(QString message)
-//{
-//    weather->checkKeyword(message, msgSendElements);
-//    if(currentRecMsgStruct.msg  == "!aaa")
-//    {
-//        std::cout << termcolor::red << "temp.msg == \"!aaa\""  << termcolor::reset<< std::endl;
-//        MsgSendElements send;
-//        send.room = currentRecMsgStruct.room;
-//        send.colour = colourDef;
-//        send.nick = "ProtoBrunetka";
-//        send.message = "pogoda w ...";
-//        sendText(&send);
-//    }
-//}
+void Client::checkWeather(MsgRecElements *msgRecElements, MsgSendElements *msgSendElements)
+{
+    weather->checkKeyword(msgRecElements, msgSendElements);
+
+}
 
 
 

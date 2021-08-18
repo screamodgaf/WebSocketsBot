@@ -10,7 +10,7 @@
 #include <QThread>
 #include "consoleinput.h"
 #include "parser.h"
-//#include "weather.h"
+#include "weather.h"
 
 
 
@@ -47,7 +47,7 @@ public:
     QJsonObject makeJSONconnect();
 private:
     void checkPing(QString message);
-    void checkWeather(QString message);
+    void checkWeather(MsgRecElements* msgRecElements, MsgSendElements* msgSendElements);
 private Q_SLOTS:
     void onConnected();
     void onTextMessageReceived(QString message);
@@ -65,7 +65,7 @@ private:
 
     ConsoleInput *consoleInput;
     QThread* consoleThread;
-//    Weather* weather;
+    Weather* weather;
     MsgRecElements* msgRecElements;
     MsgSendElements* msgSendElements;
 

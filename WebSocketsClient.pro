@@ -13,7 +13,7 @@ SOURCES += \
         consoleinput.cpp \
         main.cpp \
         parser.cpp \
-#        weather.cpp
+        weather.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -24,4 +24,4 @@ HEADERS += \
     client.h \
     consoleinput.h \
     parser.h \
-#    weather.h
+    weather.h
