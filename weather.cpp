@@ -91,5 +91,7 @@ void Weather::process(QString core)
     weatherColourIndex =0;
     msgSendElements->colour = "FF0000";
     delete qprocess;
+
+    //<#aa7755> aaaa <#08a60d>lalala
 }
 

@@ -64,23 +64,23 @@ def dayLenght(data):
  
     if t1minutes > t2minutes:
         t1 = (24*60 - t1minutes) + t2minutes
-        return ("<b>Dlugosc dnia: " + str(int(t1 / 60)) + "h " + str(t1 - (int(t1 / 60) * 60)) + "m")
+        return ("<b><i><u>Dlugosc dnia: " + str(int(t1 / 60)) + "h " + str(t1 - (int(t1 / 60) * 60)) + "m")
 
     if t1minutes < t2minutes:
         t1 = (12*60 - t1minutes) + (t2minutes - 12*60)
-        return ("<b>Dlugosc dnia: " + str(int(t1 / 60)) + "h " + str(t1 - (int(t1 / 60) * 60)) + "m")
+        return ("<b><i><u>Dlugosc dnia: " + str(int(t1 / 60)) + "h " + str(t1 - (int(t1 / 60) * 60)) + "m")
 
 def data_output(data):
     m_symbol = "*C"
-    print('<b>Pogoda: {}, {}:'.format(data['city'], data['country']))
-    print("<b>Temperatura:",data['temp'], m_symbol, data['sky'])
+    print('<b><i><u>Pogoda: {}, {}:'.format(data['city'], data['country']))
+    print("<b><i><u>Temperatura:",data['temp'], m_symbol, data['sky'])
     #print('')
-    print('<b>Predkosc wiatru: {} '.format(data['wind'] ))
-    print(('<b>Wilgotnosc powietrza: {}'.format(data['humidity']) +'%'))
-    print(('<b>Zachmurzenie: {}'.format(data['cloudiness']))+'%')
-    print('<b>Cisnienie: {}'.format(data['pressure']))
-    print('<b>Wschod sloneczka: {}'.format(data['sunrise']))
-    print('<b>Zachod sloneczka: {}'.format(data['sunset'])) 
+    print('<b><i><u>Predkosc wiatru: {} '.format(data['wind'] ))
+    print(('<b><i><u>Wilgotnosc powietrza: {}'.format(data['humidity']) +'%'))
+    print(('<b><i><u>Zachmurzenie: {}'.format(data['cloudiness']))+'%')
+    print('<b><i><u>Cisnienie: {}'.format(data['pressure']))
+    print('<b><i><u>Wschod sloneczka: {}'.format(data['sunrise']))
+    print('<b><i><u>Zachod sloneczka: {}'.format(data['sunset'])) 
     print(dayLenght(data))
 
 if __name__ == '__main__':

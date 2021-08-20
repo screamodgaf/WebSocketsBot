@@ -11,7 +11,7 @@
 #include "consoleinput.h"
 #include "parser.h"
 #include "weather.h"
-
+#include "loadlogs.h"
 
 
 
@@ -48,6 +48,7 @@ public:
 private:
     void checkPing(QString message);
     void checkWeather(MsgRecElements* msgRecElements, MsgSendElements* msgSendElements);
+    void loadTalkLogs(LoadLogs& loadLogs);
 private Q_SLOTS:
     void onConnected();
     void onTextMessageReceived(QString message);
@@ -63,6 +64,7 @@ private:
     QString ping;
     QUrl url;
 
+    std::vector<std::string>* v_talkdatabase;
     ConsoleInput *consoleInput;
     QThread* consoleThread;
     Weather* weather;
@@ -72,6 +74,7 @@ private:
     QString nick = "ProtoBrunetka";
     std::string colourDef = "000000";
     QString room = "grunge";
+    LoadLogs loadlogs;
 };
 
 #endif // CLIENT_H

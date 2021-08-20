@@ -1,3 +1,6 @@
+/*
+*Main class of the program
+*/
 #include "client.h"
 #include <QtCore/QDebug>
 #include <QtWebSockets/QWebSocket>
@@ -31,6 +34,7 @@ Client::Client(const QUrl &url_, QObject *parent) :
 
     connect(m_webSocket, &QWebSocket::disconnected, this, &Client::reconnect);
 
+    loadTalkLogs(loadlogs);//load txt with talk logs
     m_webSocket->open(QUrl(url));
 
     msgRecElements = new MsgRecElements;
@@ -181,6 +185,12 @@ void Client::checkWeather(MsgRecElements *msgRecElements, MsgSendElements *msgSe
 {
     weather->checkKeyword(msgRecElements, msgSendElements);
 
+}
+
+void Client::loadTalkLogs(LoadLogs &loadLogs)
+{
+    v_talkdatabase = &loadLogs.loadTalkLogs();
+    std::cout << "v_talkdatabase address: " << &*v_talkdatabase << "\n";
 }
 
 

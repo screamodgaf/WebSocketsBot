@@ -11,6 +11,7 @@ QT += websockets
 SOURCES += \
         client.cpp \
         consoleinput.cpp \
+        loadlogs.cpp \
         main.cpp \
         parser.cpp \
         weather.cpp
@@ -23,5 +24,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     client.h \
     consoleinput.h \
+    loadlogs.h \
     parser.h \
     weather.h
