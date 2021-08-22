@@ -1,5 +1,9 @@
 /*
-*Main class of the program
+* - Client is the main class of the program;
+* - New classes with functional struct MsgRecElements and struct MsgSendElements;
+*   are added by forward declaring structs in a new class header file, and then
+*   in .cpp client.h is included to give definition to the structs;
+* -
 */
 #include "client.h"
 #include <QtCore/QDebug>
@@ -19,10 +23,13 @@ QT_USE_NAMESPACE
 
 int Weather::weatherColourIndex = 0;
 
+
 //! [constructor]
-Client::Client(const QUrl &url_, QObject *parent) :
+Client::Client(const QUrl &url_, std::string nick_, std::string room_, QObject *parent) :
     QObject(parent),
-    url(url_)
+    url(url_),
+    nick(nick_),
+    room(room_)
 {
     m_webSocket = new QWebSocket;
     connect(m_webSocket, &QWebSocket::connected, this, &Client::onConnected);
@@ -34,25 +41,34 @@ Client::Client(const QUrl &url_, QObject *parent) :
 
     connect(m_webSocket, &QWebSocket::disconnected, this, &Client::reconnect);
 
-    loadTalkLogs(loadlogs);//load txt with talk logs
+    //load txt with talk logs:
+    v_talkdatabase = &loadlogs.loadTalkLogs();
+    std::cout << "v_talkdatabase address: " << &*v_talkdatabase << "\n";
+
+    //establish connection"
     m_webSocket->open(QUrl(url));
 
     msgRecElements = new MsgRecElements;
     msgSendElements = new MsgSendElements;
+    msgSendElements->myNick = nick; //setting my current nick
     ping = "{\"numbers\":[1],\"strings\":[]}";
 
-//console input:
+    //console input:
     consoleThread = new QThread;
     consoleInput = new ConsoleInput(nullptr, consoleThread, m_webSocket, msgRecElements, msgSendElements);
     consoleInput->moveToThread(consoleThread);
     connect(consoleThread, &QThread::finished, consoleInput, &QObject::deleteLater);
     connect(consoleInput, &ConsoleInput::postItSignal, this, &Client::sendText);
-
     consoleThread->start();
 
     //weather:
     weather = new Weather(this);
     connect(weather, &Weather::postItSignal, this, &Client::sendText);
+
+    //bot talk
+    talkIndexLines =0;
+    botTalk = new BotTalk(this, v_talkdatabase);
+    connect(botTalk, &BotTalk::postItSignal, this, &Client::sendText);
 }
 
 
@@ -60,18 +76,29 @@ Client::Client(const QUrl &url_, QObject *parent) :
 void Client::onConnected()
 {
     qDebug() << "WebSocket connected";
-    m_webSocket->sendTextMessage("HTTP/1.1 101 Switching Protocols");
-    m_webSocket->sendTextMessage("Host: s1.polfan.pl:16080");
-    m_webSocket->sendTextMessage("Upgrade: websocket");
-    m_webSocket->sendTextMessage("Connection: Upgrade");
-    m_webSocket->sendTextMessage("Sec - WebSocket - Key: Gc8ZddRMJbwI8j84moViWw==");
-    m_webSocket->sendTextMessage("Origin: https://polfan.pl");
+//    m_webSocket->sendTextMessage("HTTP/1.1 101 Switching Protocols");
+//    m_webSocket->sendTextMessage("Host: s1.polfan.pl:16080");
+//    m_webSocket->sendTextMessage("Upgrade: websocket");
+//    m_webSocket->sendTextMessage("Connection: Upgrade");
+//    m_webSocket->sendTextMessage("Sec - WebSocket - Key: Gc8ZddRMJbwI8j84moViWw==");
+//    m_webSocket->sendTextMessage("Origin: https://polfan.pl");
 
     QString s;
+    std::string conInfo;
     QFile file("D:/Qt_workspace/WebSocketsClient/1.json");
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         qWarning() << "file not opened!";
-    m_webSocket->sendTextMessage(s.fromLocal8Bit(file.readAll()));
+    else{
+       conInfo =  s.fromLocal8Bit(file.readAll()).toStdString();
+       size_t nbeg =0;
+       if((nbeg = conInfo.find("$nick"))!=std::string::npos)
+           conInfo.replace(nbeg,5, nick);
+       if((nbeg = conInfo.find("$room"))!=std::string::npos)
+           conInfo.replace(nbeg,5, room);
+
+       m_webSocket->sendTextMessage(QString::fromStdString(conInfo));
+    }
+
 
 
     //    QString x = QJsonDocument(makeJSONconnect()).toJson(QJsonDocument::Compact).toStdString().c_str();
@@ -143,7 +170,12 @@ void Client::onTextMessageReceived(QString message)
     std::cout << termcolor::blue << "currentRecMsgStruct.msg: " << msgRecElements->msg  << termcolor::reset<< std::endl;
 
     checkWeather(msgRecElements, msgSendElements);
+    increaseTalkIndexLines(msgRecElements);
+    checkBotTalk(msgRecElements, msgSendElements);
 
+
+    //RESET:
+    Parser::resetRecElement(msgRecElements);
     //std::cout << termcolor::red << message.toStdString() << termcolor::reset<< std::endl;
 }
 
@@ -166,6 +198,10 @@ void Client::sendText(MsgSendElements* msgSendElements) // struct argument defin
     //std::cout << termcolor::on_red << "send it: " << docByteArray.toStdString() << termcolor::reset<< std::endl;
     m_webSocket->sendTextMessage(QString::fromUtf8(doc.toJson(QJsonDocument::Compact))); //cplours turn off sending
     //    m_webSocket->sendTextMessage("{\"numbers\":[410],\"strings\":[\"<#000000>ążąś\", \"grunge\"]}");
+
+    Parser::resetSendElement(msgSendElements);  //reset so the next received message wont use this old set values
+
+
 }
 
 void Client::checkPing(QString message)
@@ -187,11 +223,22 @@ void Client::checkWeather(MsgRecElements *msgRecElements, MsgSendElements *msgSe
 
 }
 
-void Client::loadTalkLogs(LoadLogs &loadLogs)
+void Client::checkBotTalk(MsgRecElements *msgRecElements, MsgSendElements *msgSendElements)
 {
-    v_talkdatabase = &loadLogs.loadTalkLogs();
-    std::cout << "v_talkdatabase address: " << &*v_talkdatabase << "\n";
+    std::cout << "Client::checkBotTalk talkIndexLines : " << talkIndexLines << "\n";
+    if(talkIndexLines >= 5)  {
+        // to activate speak now
+        botTalk->runBotTalk(msgRecElements, msgSendElements);
+        talkIndexLines=0;
+    }
 }
+
+void Client::increaseTalkIndexLines(MsgRecElements *msgRecElements)
+{
+    if(msgRecElements->numbers == "610") //610 normal speech on chat
+        talkIndexLines++;
+}
+
 
 
 
@@ -204,12 +251,15 @@ void Client::onSslErrors(const QList<QSslError> &errors)
     // WARNING: Never ignore SSL errors in production code.
     // The proper way to handle self-signed certificates is to add a custom root
     // to the CA store.
+    std::cout << termcolor::on_red << "SSL ERROR: void Client::onSslErrors" << termcolor::reset<< std::endl;
 
     m_webSocket->ignoreSslErrors();
 }
 
 void Client::reconnect()
 {
+    std::cout << termcolor::on_red << "RECONNECTING: Client::reconnect()" << termcolor::reset<< std::endl;
+
     m_webSocket->open(url);
     onConnected();
 }

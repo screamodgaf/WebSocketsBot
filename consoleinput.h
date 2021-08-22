@@ -22,7 +22,7 @@ class ConsoleInput : public QObject
     Q_OBJECT
 public:
     explicit ConsoleInput(QObject *parent = nullptr, QThread *thread_ = nullptr, QWebSocket *m_webSocket_ = nullptr, MsgRecElements *msgRecElements_ = nullptr, MsgSendElements* msgSendElements_ = nullptr);
-    void startConsole();
+
 
 //    void determineOption(std::string input);
 //    void runFromIRC(std::string &data);

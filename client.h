@@ -12,16 +12,18 @@
 #include "parser.h"
 #include "weather.h"
 #include "loadlogs.h"
-
+#include "bottalk.h"
 
 
 
 struct MsgSendElements
 {
     std::string nick = "";
-    std::string colour = "";
+    std::string colour = "FF0000";
     std::string message = "";
     std::string room = "";
+    std::string numbers = "410";
+    std::string myNick = "";
 };
 
 struct MsgRecElements
@@ -29,12 +31,13 @@ struct MsgRecElements
     std::string nick = "";
     std::string msg = "";
     std::string room = "";
+    std::string numbers;
     bool is_not_valid_message = false;
 };
 
 
 
-Q_DECLARE_METATYPE(MsgSendElements*);
+Q_DECLARE_METATYPE(MsgSendElements*); //for using MsgSendElements* as own type in signal-slot system (connect)
 
 
 class Client : public QObject
@@ -42,13 +45,14 @@ class Client : public QObject
     Q_OBJECT
 public:
 
-    explicit Client(const QUrl &url_, QObject *parent = nullptr);
+    explicit Client(const QUrl &url_, std::string nick_, std::string room_, QObject *parent = nullptr);
     QJsonObject makeJSONsend(std::string nick, std::string colour, std::string message, std::string room);
     QJsonObject makeJSONconnect();
 private:
     void checkPing(QString message);
     void checkWeather(MsgRecElements* msgRecElements, MsgSendElements* msgSendElements);
-    void loadTalkLogs(LoadLogs& loadLogs);
+    void checkBotTalk(MsgRecElements* msgRecElements, MsgSendElements* msgSendElements);
+    void increaseTalkIndexLines(MsgRecElements* msgRecElements);
 private Q_SLOTS:
     void onConnected();
     void onTextMessageReceived(QString message);
@@ -71,10 +75,13 @@ private:
     MsgRecElements* msgRecElements;
     MsgSendElements* msgSendElements;
 
-    QString nick = "ProtoBrunetka";
+    int talkIndexLines; // counter of lines spoken on chat
+    std::string nick = "";
+    std::string room = "";
     std::string colourDef = "000000";
-    QString room = "grunge";
+
     LoadLogs loadlogs;
+    BotTalk* botTalk;
 };
 
 #endif // CLIENT_H

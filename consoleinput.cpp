@@ -13,17 +13,10 @@ ConsoleInput::ConsoleInput(QObject *parent, QThread *thread_, QWebSocket *m_webS
     m_webSocket = m_webSocket_;
     thread = thread_;
 
-    msgSendElements->nick = nick; // my nick TODO
-    msgSendElements->room = room; // as default room of origin where messages go
+
 
     QObject::connect(thread, SIGNAL(started()), this, SLOT(run()));
 }
-
-void ConsoleInput::startConsole( )
-{
-
-}
-
 
 
 
@@ -57,6 +50,9 @@ void ConsoleInput::postInput(std::string &input)// for commands
 {
     std::cout << input << "\n";
     msgSendElements->message = input;
+    msgSendElements->nick = msgSendElements->myNick; // my nick TODO
+    msgSendElements->room = "grunge" ; // as default room of origin where messages go
+
     emit postItSignal(msgSendElements);
 }
 

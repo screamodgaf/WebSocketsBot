@@ -70,16 +70,15 @@ void Weather::process(QString core)
         QByteArray tempByteArr = qprocess->readLine();
         std::string temp = tempByteArr.toStdString();
 
-        std::string nick = "ProtoBrunetka";
-        std::string room = "grunge";
+
 //        std::string colour = "FF0000";
 
         msgSendElements->message = tempByteArr.toStdString();
         if(msgSendElements->message.find("\r\n")!=std::string::npos)
                 msgSendElements->message.resize(msgSendElements->message.size()-2);
-        msgSendElements->room = room;
+        msgSendElements->room = msgRecElements->room;
         msgSendElements->colour = v_colours[weatherColourIndex++];
-        msgSendElements->nick = nick;
+        msgSendElements->nick = msgSendElements->myNick;
 
         emit postItSignal(msgSendElements);
 //        QThread::msleep(450);
@@ -89,7 +88,7 @@ void Weather::process(QString core)
 
     qprocess = nullptr;
     weatherColourIndex =0;
-    msgSendElements->colour = "FF0000";
+    // msgSendElements->colour = "FF0000";
     delete qprocess;
 
     //<#aa7755> aaaa <#08a60d>lalala
